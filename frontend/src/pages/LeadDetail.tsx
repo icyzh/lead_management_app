@@ -6,6 +6,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { NotesList } from "../components/NotesList";
 import { AIEditor } from "../components/AIEditor";
 import { LoadingSpinner } from "../components/LoadingSpinner";
+import { useNotes } from "../hooks/useNotes";
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -17,6 +18,7 @@ export function LeadDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"notes" | "ai">("notes");
+  const { notes: liveNotes } = useNotes(id ?? "");
 
   useEffect(() => {
     if (!id) return;
@@ -92,7 +94,7 @@ export function LeadDetail() {
         ))}
       </div>
 
-      {activeTab === "notes" ? <NotesList leadId={lead.id} /> : <AIEditor leadId={lead.id} notesCount={lead.notes?.length ?? 0} />}
+      {activeTab === "notes" ? <NotesList leadId={lead.id} /> : <AIEditor leadId={lead.id} notesCount={liveNotes.length} />}
     </div>
   );
 }
