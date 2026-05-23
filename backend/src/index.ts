@@ -11,10 +11,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Read allowed origins from environment variables
+// Read allowed origins from environment variables, stripping potential copy-paste quotes
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map((o) => o.trim())
+  .map((o) => o.trim().replace(/^['"]|['"]$/g, ""))
   .filter(Boolean);
 
 const normalizeUrl = (url: string) => url.replace(/\/$/, "");
