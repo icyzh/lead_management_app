@@ -14,7 +14,7 @@ const SummarizeSchema = z.object({
 
 /**
  * POST /api/ai/summarize
- * Generates an AI-powered summary draft from a lead's chronological notes.
+ * Generates an  summary draft from a lead's notes.
  */
 router.post("/summarize", async (req: Request, res: Response, next: NextFunction) => {
   try {
