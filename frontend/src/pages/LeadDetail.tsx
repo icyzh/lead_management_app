@@ -18,7 +18,7 @@ export function LeadDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"notes" | "ai">("notes");
-  const { notes: liveNotes } = useNotes(id ?? "");
+  const { notes: liveNotes, loading: notesLoading, error: notesError, submitting, addNote, deleteNote } = useNotes(id ?? "");
 
   useEffect(() => {
     if (!id) return;
@@ -94,7 +94,18 @@ export function LeadDetail() {
         ))}
       </div>
 
-      {activeTab === "notes" ? <NotesList leadId={lead.id} /> : <AIEditor leadId={lead.id} notesCount={liveNotes.length} />}
+      {activeTab === "notes" ? (
+        <NotesList
+          notes={liveNotes}
+          loading={notesLoading}
+          error={notesError}
+          submitting={submitting}
+          addNote={addNote}
+          deleteNote={deleteNote}
+        />
+      ) : (
+        <AIEditor leadId={lead.id} notesCount={liveNotes.length} onSaveNote={addNote} />
+      )}
     </div>
   );
 }

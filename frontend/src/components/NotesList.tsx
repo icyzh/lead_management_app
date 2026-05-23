@@ -1,10 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import type { Note } from "../types";
-import { useNotes } from "../hooks/useNotes";
 import { LoadingSpinner, InlineSpinner } from "./LoadingSpinner";
 import { EmptyState } from "./EmptyState";
 
-interface Props { leadId: string }
+interface Props {
+  notes: Note[];
+  loading: boolean;
+  error: string | null;
+  submitting: boolean;
+  addNote: (content: string) => Promise<boolean>;
+  deleteNote: (id: string) => Promise<void>;
+}
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -43,8 +49,7 @@ function NoteItem({ note, onDelete }: { note: Note; onDelete: (id: string) => Pr
   );
 }
 
-export function NotesList({ leadId }: Props) {
-  const { notes, loading, error, submitting, addNote, deleteNote } = useNotes(leadId);
+export function NotesList({ notes, loading, error, submitting, addNote, deleteNote }: Props) {
   const [content, setContent] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);

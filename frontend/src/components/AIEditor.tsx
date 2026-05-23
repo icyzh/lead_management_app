@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useAI } from "../hooks/useAI";
-import { notesApi } from "../api/notes";
 import { InlineSpinner } from "./LoadingSpinner";
 
-interface Props { leadId: string; notesCount: number }
+interface Props {
+  leadId: string;
+  notesCount: number;
+  onSaveNote: (content: string) => Promise<boolean>;
+}
 
-export function AIEditor({ leadId, notesCount }: Props) {
+export function AIEditor({ leadId, notesCount, onSaveNote }: Props) {
   const { draft, setDraft, loading, error, generate, clearDraft } = useAI(leadId);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -14,7 +17,7 @@ export function AIEditor({ leadId, notesCount }: Props) {
     if (!draft?.trim()) return;
     setSaving(true); setSaveError(null);
     try {
-      await notesApi.create({ leadId, content: `[AI Summary]\n${draft.trim()}` });
+      await onSaveNote(`[AI Summary]\n${draft.trim()}`);
       setSaved(true);
       setTimeout(() => { setSaved(false); clearDraft(); }, 1800);
     } catch (err) {
