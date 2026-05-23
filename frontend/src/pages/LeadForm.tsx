@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { leadsApi } from "../api/leads";
+import { Dropdown } from "../components/Dropdown";
 import { LEAD_STATUSES, STATUS_LABELS } from "../types";
 import type { LeadStatus } from "../types";
 import { InlineSpinner, LoadingSpinner } from "../components/LoadingSpinner";
@@ -89,10 +90,12 @@ export function LeadForm() {
           </div>
           <div>
             <label htmlFor="status" className="label">Status</label>
-            <select id="status" name="status" value={form.status}
-              onChange={handleChange} className="input">
-              {LEAD_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-            </select>
+            <Dropdown
+              value={form.status}
+              onChange={(value) => setForm((p) => ({ ...p, status: value as LeadStatus }))}
+              options={LEAD_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+              className="w-full"
+            />
           </div>
 
           <hr className="divider !mt-6" />

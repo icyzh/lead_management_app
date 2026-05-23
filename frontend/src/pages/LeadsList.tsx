@@ -4,6 +4,7 @@ import { useLeads } from "../hooks/useLeads";
 import { StatusBadge } from "../components/StatusBadge";
 import { LoadingSpinner } from "../components/LoadingSpinner";
 import { EmptyState } from "../components/EmptyState";
+import { Dropdown } from "../components/Dropdown";
 import { LEAD_STATUSES, STATUS_LABELS } from "../types";
 import type { Lead, LeadStatus } from "../types";
 import { leadsApi } from "../api/leads";
@@ -58,15 +59,15 @@ export function LeadsList() {
           placeholder="Search by name or email…"
           className="input"
         />
-        <select
-          id="filter-status"
+        <Dropdown
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="input w-44 shrink-0"
-        >
-          <option value="">All statuses</option>
-          {LEAD_STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
-        </select>
+          onChange={setStatus}
+          options={[
+            { value: "", label: "All statuses" },
+            ...LEAD_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] })),
+          ]}
+          className="w-44 shrink-0"
+        />
       </div>
 
       {error && (
