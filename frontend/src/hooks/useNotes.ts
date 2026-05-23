@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Note } from "../types";
 import { notesApi } from "../api/notes";
 
@@ -7,23 +7,30 @@ export function useNotes(leadId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchNotes = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
     try {
-      const res = await notesApi.list(leadId);
-      setNotes(res.data);
+      const res = await notesApi.list(leadId, controller.signal);
+      if (!controller.signal.aborted) setNotes(res.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load notes");
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Failed to load notes");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, [leadId]);
 
   useEffect(() => {
     if (leadId) fetchNotes();
-  }, [fetchNotes, leadId]);
+    return () => abortRef.current?.abort();
+  }, [fetchNotes]);
 
   const addNote = async (content: string) => {
     setSubmitting(true);
@@ -39,12 +46,8 @@ export function useNotes(leadId: string) {
   };
 
   const deleteNote = async (noteId: string) => {
-    try {
-      await notesApi.delete(noteId);
-      setNotes((prev) => prev.filter((n) => n.id !== noteId));
-    } catch (err) {
-      throw err;
-    }
+    await notesApi.delete(noteId);
+    setNotes((prev) => prev.filter((n) => n.id !== noteId));
   };
 
   return { notes, loading, error, submitting, addNote, deleteNote, refetch: fetchNotes };

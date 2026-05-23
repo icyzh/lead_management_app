@@ -30,6 +30,8 @@ export async function summarizeNotes(
     if (!text) throw new Error("Empty response from Gemini");
     return { summary: text.trim(), model: MODEL };
   } catch (err) {
-    throw new Error(`summarize failed: ${err instanceof Error ? err.message : "unknown error"}`);
+    const wrapped = new Error(`summarize failed: ${err instanceof Error ? err.message : "unknown error"}`);
+    wrapped.cause = err;
+    throw wrapped;
   }
 }

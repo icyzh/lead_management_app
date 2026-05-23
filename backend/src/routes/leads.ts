@@ -1,19 +1,17 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 import { createError } from "../middleware/errorHandler";
+import { formatZodError } from "../lib/formatError";
 
 const router = Router();
-const prisma = new PrismaClient();
 
-// Statuses
 const VALID_STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "CLOSED"] as const;
 
-// Type Validate Schemes
 const CreateLeadSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
+  name: z.string().min(1, "Name is required").max(100, "Name must be 100 characters or less"),
   email: z.string().email("Invalid email address"),
-  company: z.string().max(100).optional(),
+  company: z.string().max(100, "Company must be 100 characters or less").optional(),
   status: z.enum(VALID_STATUSES).optional().default("NEW"),
 });
 
@@ -84,7 +82,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = CreateLeadSchema.safeParse(req.body);
     if (!parsed.success) {
-      return next(createError(parsed.error.errors.map((e) => e.message).join(", "), 422));
+      return next(createError(formatZodError(parsed.error), 422));
     }
     const { name, email, company, status } = parsed.data;
 
@@ -108,7 +106,7 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
     const id = String(req.params.id);
     const parsed = UpdateLeadSchema.safeParse(req.body);
     if (!parsed.success) {
-      return next(createError(parsed.error.errors.map((e) => e.message).join(", "), 422));
+      return next(createError(formatZodError(parsed.error), 422));
     }
 
     const existing = await prisma.lead.findUnique({ where: { id } });

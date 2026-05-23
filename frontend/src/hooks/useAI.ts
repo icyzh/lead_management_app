@@ -1,31 +1,34 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { aiApi } from "../api/ai";
 
-/**
- * Custom React Hook to manage AI note summarization state flow.
- */
 export function useAI(leadId: string) {
   const [draft, setDraft] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [model, setModel] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // Calls the backend AI endpoint to fetch a summary draft
   const generate = async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
     try {
-      const res = await aiApi.summarize(leadId);
-      setDraft(res.data.summary);
-      setModel(res.data.model);
+      const res = await aiApi.summarize(leadId, controller.signal);
+      if (!controller.signal.aborted) {
+        setDraft(res.data.summary);
+        setModel(res.data.model);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "AI generation failed");
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "AI generation failed");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   };
 
-  // Resets state back to initial values
   const clearDraft = () => {
     setDraft(null);
     setError(null);

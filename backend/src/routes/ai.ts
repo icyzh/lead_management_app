@@ -1,13 +1,19 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 import { summarizeNotes } from "../services/ai.service";
 import { createError } from "../middleware/errorHandler";
+import { formatZodError } from "../lib/formatError";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
-const prisma = new PrismaClient();
 
-// Schema for input validation
+const summarizeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: "Too many requests, please try again later" },
+});
+
 const SummarizeSchema = z.object({
   leadId: z.string().min(1),
 });
@@ -16,12 +22,12 @@ const SummarizeSchema = z.object({
  * POST /api/ai/summarize
  * Generates an  summary draft from a lead's notes.
  */
-router.post("/summarize", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/summarize", summarizeLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Validate request parameter schema
     const parsed = SummarizeSchema.safeParse(req.body);
     if (!parsed.success) {
-      return next(createError(parsed.error.errors.map((e) => e.message).join(", "), 422));
+      return next(createError(formatZodError(parsed.error), 422));
     }
 
     const { leadId } = parsed.data;

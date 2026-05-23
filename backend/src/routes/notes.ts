@@ -1,15 +1,14 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 import { createError } from "../middleware/errorHandler";
+import { formatZodError } from "../lib/formatError";
 
 const router = Router();
-const prisma = new PrismaClient();
 
-// Schema for input validation using Zod
 const CreateNoteSchema = z.object({
   leadId: z.string().min(1),
-  content: z.string().min(1, "Note cannot be empty").max(2000),
+  content: z.string().min(1, "Note cannot be empty").max(2000, "Note must be 2000 characters or less"),
 });
 
 /**
@@ -40,7 +39,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = CreateNoteSchema.safeParse(req.body);
     if (!parsed.success) {
-      return next(createError(parsed.error.errors.map((e) => e.message).join(", "), 422));
+      return next(createError(formatZodError(parsed.error), 422));
     }
     const { leadId, content } = parsed.data;
     

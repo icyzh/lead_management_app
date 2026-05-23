@@ -92,7 +92,7 @@ export function LeadDetail() {
         ))}
       </div>
 
-      {activeTab === "notes" ? <NotesList leadId={lead.id} /> : <AIEditor leadId={lead.id} />}
+      {activeTab === "notes" ? <NotesList leadId={lead.id} /> : <AIEditor leadId={lead.id} notesCount={lead.notes?.length ?? 0} />}
     </div>
   );
 }

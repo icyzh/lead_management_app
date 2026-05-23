@@ -35,18 +35,25 @@ export function Dropdown({ value, onChange, options, placeholder = "Select...", 
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="input flex items-center justify-between gap-2 text-sm text-left cursor-pointer w-full"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
       >
         <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
         <span className="text-zinc-500 text-xs shrink-0 select-none">▾</span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-1 w-full min-w-[160px] origin-top-right rounded-md bg-zinc-900 border border-zinc-800 shadow-xl focus:outline-none">
+        <div
+          className="absolute right-0 z-50 mt-1 w-full min-w-[160px] origin-top-right rounded-md bg-zinc-900 border border-zinc-800 shadow-xl focus:outline-none"
+          role="listbox"
+        >
           <div className="py-1 max-h-60 overflow-y-auto">
             {options.map((option) => (
               <button
                 key={option.value}
                 type="button"
+                role="option"
+                aria-selected={option.value === value}
                 onClick={() => {
                   onChange(option.value);
                   setIsOpen(false);

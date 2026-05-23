@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import morgan from "morgan";
 import dotenv from "dotenv";
 import { leadsRouter } from "./routes/leads";
 import { notesRouter } from "./routes/notes";
@@ -11,7 +12,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Read allowed origins from environment variables, stripping potential copy-paste quotes
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((o) => o.trim().replace(/^['"]|['"]$/g, ""))
@@ -25,9 +25,7 @@ const isOriginAllowed = (origin: string | undefined): boolean => {
     return true;
   }
   const normalizedOrigin = normalizeUrl(origin);
-  const allowed = allowedOrigins.some((allowed) => normalizeUrl(allowed) === normalizedOrigin);
-  console.log(`[CORS Check] Incoming: "${origin}". Allowed list: ${JSON.stringify(allowedOrigins)}. Result: ${allowed}`);
-  return allowed;
+  return allowedOrigins.some((allowed) => normalizeUrl(allowed) === normalizedOrigin);
 };
 
 app.use(
@@ -36,7 +34,7 @@ app.use(
       if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
-        callback(null, false);
+        callback(new Error("Origin not allowed by CORS"));
       }
     },
     credentials: true,
@@ -44,6 +42,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(morgan("dev"));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

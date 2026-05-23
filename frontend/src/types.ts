@@ -36,3 +36,12 @@ export interface ApiResponse<T> {
 export interface ApiError {
   error: string;
 }
+
+export interface SummarizeResult {
+  data: {
+    summary: string;
+    model: string;
+    notesCount: number;
+    leadName: string;
+  };
+}

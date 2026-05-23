@@ -1,29 +1,21 @@
 import { useState } from "react";
 import { useAI } from "../hooks/useAI";
-import { useNotes } from "../hooks/useNotes";
+import { notesApi } from "../api/notes";
 import { InlineSpinner } from "./LoadingSpinner";
 
-interface Props { leadId: string }
+interface Props { leadId: string; notesCount: number }
 
-/**
- * AIEditor Component
- * Allows generating a notes summary draft, editing it, and explicitly saving it as a note.
- */
-export function AIEditor({ leadId }: Props) {
+export function AIEditor({ leadId, notesCount }: Props) {
   const { draft, setDraft, loading, error, generate, clearDraft } = useAI(leadId);
-  const { notes, addNote } = useNotes(leadId);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Saves the edited draft to the database as a note prefixing it with [AI Summary]
   const handleSave = async () => {
     if (!draft?.trim()) return;
     setSaving(true); setSaveError(null);
     try {
-      await addNote(`[AI Summary]\n${draft.trim()}`);
+      await notesApi.create({ leadId, content: `[AI Summary]\n${draft.trim()}` });
       setSaved(true);
-      // Wait for success animation state then clear the draft
       setTimeout(() => { setSaved(false); clearDraft(); }, 1800);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Failed to save");
@@ -40,8 +32,8 @@ export function AIEditor({ leadId }: Props) {
         {!draft && !loading && (
           <button
             onClick={generate}
-            disabled={loading || notes.length === 0}
-            title={notes.length === 0 ? "Add notes first" : ""}
+            disabled={loading || notesCount === 0}
+            title={notesCount === 0 ? "Add notes first" : ""}
             className="btn-secondary"
           >
             Generate
@@ -49,7 +41,7 @@ export function AIEditor({ leadId }: Props) {
         )}
       </div>
 
-      {notes.length === 0 && !draft && !loading && (
+      {notesCount === 0 && !draft && !loading && (
         <p className="text-xs text-zinc-600 bg-zinc-800 rounded-md px-3 py-2">
           Add notes to this lead first before generating a summary.
         </p>

@@ -10,11 +10,13 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function NoteItem({ note, onDelete }: { note: Note; onDelete: (id: string) => void }) {
+function NoteItem({ note, onDelete }: { note: Note; onDelete: (id: string) => Promise<void> }) {
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const handleDelete = async () => {
     setDeleting(true);
-    try { await onDelete(note.id); } finally { setDeleting(false); }
+    setDeleteError(null);
+    try { await onDelete(note.id); } catch { setDeleteError("Failed to delete note"); } finally { setDeleting(false); }
   };
 
   return (
@@ -27,6 +29,7 @@ function NoteItem({ note, onDelete }: { note: Note; onDelete: (id: string) => vo
         <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{note.content}</p>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-zinc-600">{formatDate(note.createdAt)}</span>
+          {deleteError && <span className="text-xs text-red-400 mr-2">{deleteError}</span>}
           <button
             onClick={handleDelete}
             disabled={deleting}
