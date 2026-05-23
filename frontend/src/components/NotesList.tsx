@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Note } from "../types";
 import { useNotes } from "../hooks/useNotes";
 import { LoadingSpinner, InlineSpinner } from "./LoadingSpinner";
@@ -44,6 +44,14 @@ export function NotesList({ leadId }: Props) {
   const { notes, loading, error, submitting, addNote, deleteNote } = useNotes(leadId);
   const [content, setContent] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [content]);
 
   const handleAdd = async () => {
     const trimmed = content.trim();
@@ -57,12 +65,13 @@ export function NotesList({ leadId }: Props) {
     <div>
       <div className="card p-4 mb-6">
         <textarea
+          ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleAdd(); } }}
           placeholder="Add a note… (Ctrl+Enter to submit)"
           rows={3}
-          className="input resize-none mb-3 block"
+          className="input resize-none mb-3 block overflow-hidden"
         />
         {addError && <p className="text-xs text-red-400 mb-2">{addError}</p>}
         <div className="flex justify-end">
