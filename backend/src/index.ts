@@ -17,7 +17,6 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
-// CORS checking logic: always permit localhost/127.0.0.1 for local testing
 const isOriginAllowed = (origin: string | undefined): boolean => {
   if (!origin) return true;
   if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
@@ -32,7 +31,7 @@ app.use(
       if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
-        callback(null, false); // Reject without throwing a server crash (500)
+        callback(null, false);
       }
     },
     credentials: true,
