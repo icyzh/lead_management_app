@@ -11,19 +11,28 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Allow only the domains mentioned in .env or use localhost for local testing
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
+// Read allowed origins from environment variables
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map((o) => o.trim());
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+// CORS checking logic: always permit localhost/127.0.0.1 for local testing
+const isOriginAllowed = (origin: string | undefined): boolean => {
+  if (!origin) return true;
+  if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
+    return true;
+  }
+  return allowedOrigins.includes(origin);
+};
 
 app.use(
   cors({
     origin: (origin, callback) => {
-
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
-        callback(new Error(`CORS: origin ${origin} not allowed`));
+        callback(null, false); // Reject without throwing a server crash (500)
       }
     },
     credentials: true,
