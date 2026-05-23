@@ -23,4 +23,5 @@ ENV PORT=3000
 
 ENV NODE_ENV=production
 
-CMD ["npm", "start"]
+# Deploy database migrations on startup before booting the server
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
