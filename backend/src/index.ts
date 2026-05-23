@@ -17,12 +17,15 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
+const normalizeUrl = (url: string) => url.replace(/\/$/, "");
+
 const isOriginAllowed = (origin: string | undefined): boolean => {
   if (!origin) return true;
   if (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
     return true;
   }
-  const allowed = allowedOrigins.includes(origin);
+  const normalizedOrigin = normalizeUrl(origin);
+  const allowed = allowedOrigins.some((allowed) => normalizeUrl(allowed) === normalizedOrigin);
   console.log(`[CORS Check] Incoming: "${origin}". Allowed list: ${JSON.stringify(allowedOrigins)}. Result: ${allowed}`);
   return allowed;
 };
